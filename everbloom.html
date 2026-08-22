@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Everbloom — send a bouquet that keeps growing</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --bg:#EEF2E8;
+  --bg-deep:#E3E9D9;
+  --ink:#20301F;
+  --ink-soft:#4B5A45;
+  --panel:#FBFAF4;
+  --line:rgba(32,48,31,0.12);
+  --plum:#8C5A6B;
+  --plum-deep:#6E4453;
+  --leaf:#4C6B4F;
+  --blush:#E7ABAA;
+  --amber:#D6A257;
+  --lavender:#A288BF;
+  --ivory:#F3EBDA;
+  --sage:#7C9473;
+  --radius:18px;
+  --shadow:0 18px 50px rgba(32,48,31,0.14);
+  --dur:.5s;
+  --ease:cubic-bezier(.22,.88,.4,1.05);
+}
+html.reduced-motion{ --dur:.01s; }
+html.reduced-motion *{ animation-duration:.01s !important; transition-duration:.01s !important; }
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;font-weight:300;-webkit-tap-highlight-color:transparent;}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:500;letter-spacing:-0.01em;color:var(--ink);}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button{font-family:'Outfit',sans-serif;cursor:pointer;border:none;background:none;color:inherit;}
+a{color:inherit;}
+:focus-visible{outline:2px solid var(--plum);outline-offset:3px;border-radius:6px;}
+.view{display:none;}
+.view.active{display:block;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:40; display:flex; align-items:center; justify-content:space-between;
+  padding:16px 22px; background:rgba(238,242,232,0.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-size:19px; font-weight:600; }
+.brand .mark{ width:20px; height:20px; }
+.topbar nav a, .topbar .backLink{ font-size:14px; color:var(--ink-soft); text-decoration:none; }
+.topbar .backLink{ display:flex; align-items:center; gap:6px; }
+
+/* ================= HOME ================= */
+#view-home .hero{
+  position:relative; min-height:82vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:60px 22px 40px; overflow:hidden;
+}
+.heroField{ position:absolute; inset:0; pointer-events:none; z-index:0; }
+.idleFlower{ position:absolute; animation:idleSway 7s ease-in-out infinite; transform-origin:50% 85%; }
+@keyframes idleSway{ 0%,100%{transform:rotate(-5deg) translateY(0);} 50%{transform:rotate(5deg) translateY(-6px);} }
+.hero .eyebrow{
+  position:relative; z-index:1; font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:var(--plum);
+  display:flex; align-items:center; gap:10px; margin-bottom:18px;
+}
+.hero .eyebrow::before,.hero .eyebrow::after{content:'';width:24px;height:1px;background:var(--plum);opacity:0.55;}
+.hero h1{ position:relative; z-index:1; font-size:clamp(36px,7vw,64px); line-height:1.08; max-width:820px; }
+.hero h1 em{ font-style:italic; color:var(--plum); }
+.hero p{ position:relative; z-index:1; max-width:460px; color:var(--ink-soft); font-size:16px; line-height:1.7; margin:20px 0 32px; }
+.ctaRow{ position:relative; z-index:1; display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+.btn{ padding:14px 28px; border-radius:40px; font-size:14.5px; letter-spacing:0.01em; transition:transform .25s var(--ease), box-shadow .25s ease; }
+.btn:active{ transform:scale(0.96); }
+.btn-primary{ background:var(--plum); color:var(--panel); box-shadow:0 10px 26px rgba(140,90,107,0.35); }
+.btn-primary:hover{ box-shadow:0 14px 32px rgba(140,90,107,0.45); transform:translateY(-1px); }
+.btn-ghost{ border:1px solid var(--line); color:var(--ink); }
+.btn-ghost:hover{ border-color:var(--plum); color:var(--plum); }
+
+/* how it works */
+.howSec{ padding:70px 22px; max-width:920px; margin:0 auto; }
+.howHead{ text-align:center; margin-bottom:44px; }
+.howHead .eyebrow{ justify-content:center; }
+.steps{ display:grid; gap:20px; grid-template-columns:1fr; }
+.step{ display:flex; gap:18px; padding:24px; background:var(--panel); border-radius:var(--radius); border:1px solid var(--line); opacity:0; transform:translateY(18px); transition:opacity .7s var(--ease), transform .7s var(--ease); }
+.step.inview{ opacity:1; transform:translateY(0); }
+.step .num{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--plum); flex-shrink:0; padding-top:2px; }
+.step h3{ font-size:19px; margin-bottom:6px; }
+.step p{ color:var(--ink-soft); font-size:14.5px; line-height:1.6; margin:0; }
+
+/* library preview */
+.libPreviewSec{ padding:40px 22px 90px; max-width:960px; margin:0 auto; text-align:center; }
+.previewGrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(84px,1fr)); gap:14px; max-width:640px; margin:36px auto 0; }
+.previewGrid .pv{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 8px; display:flex; align-items:center; justify-content:center; transition:transform .3s var(--ease); }
+.previewGrid .pv:hover{ transform:translateY(-4px) rotate(-2deg); }
+.previewGrid .pv svg{ width:44px; height:44px; }
+
+footer.siteFooter{ text-align:center; padding:30px 20px 50px; color:var(--ink-soft); font-size:12.5px; }
+
+@media(min-width:700px){ .steps{ grid-template-columns:repeat(3,1fr);} }
+
+/* ================= CREATE / COMPOSER ================= */
+#view-create{ min-height:100vh; }
+.composerWrap{ display:flex; flex-direction:column; max-width:1180px; margin:0 auto; padding:18px 16px 60px; gap:18px; }
+@media(min-width:960px){ .composerWrap{ flex-direction:row; align-items:flex-start; } }
+
+.canvasCol{ flex:1; min-width:0; }
+.canvasHead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.canvasHead h2{ font-size:20px; }
+.smallLink{ font-size:12.5px; color:var(--ink-soft); text-decoration:underline; }
+
+#bouquetCanvas{
+  position:relative; width:100%; aspect-ratio:4/5; max-height:560px; background:
+    radial-gradient(ellipse at 50% 105%, rgba(140,90,107,0.14), transparent 60%), var(--panel);
+  border:1px solid var(--line); border-radius:26px; overflow:hidden; box-shadow:var(--shadow); touch-action:none;
+}
+.vaseGuide{ position:absolute; left:50%; bottom:6%; width:36%; height:26%; transform:translateX(-50%);
+  border:1.5px dashed rgba(76,107,79,0.35); border-radius:0 0 26px 26px; pointer-events:none; }
+.canvasEmpty{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:20px; color:var(--ink-soft); font-size:14px; gap:8px; }
+.canvasEmpty .bigIcon{ font-size:30px; opacity:0.6; }
+
+.stageFlower{ position:absolute; width:70px; height:70px; margin-left:-35px; margin-top:-35px;
+  display:flex; align-items:center; justify-content:center; touch-action:none;
+  filter:drop-shadow(0 6px 10px rgba(32,48,31,0.18)); }
+.stageFlower svg{ width:100%; height:100%; overflow:visible; }
+.stageFlower.selected::after{ content:''; position:absolute; inset:-8px; border:1.5px dashed var(--plum); border-radius:50%; animation:spinSlow 12s linear infinite; }
+@keyframes spinSlow{ to{ transform:rotate(360deg); } }
+.stageFlower{ animation:popIn .35s var(--ease); }
+@keyframes popIn{ from{ transform:scale(0.4); opacity:0; } to{ transform:scale(1); opacity:1; } }
+
+.toolbar{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px; padding:10px 12px; background:var(--panel); border:1px solid var(--line); border-radius:16px; min-height:52px; }
+.toolbar[aria-disabled="true"]{ opacity:0.45; }
+.toolbar button{ width:36px; height:36px; border-radius:50%; background:var(--bg-deep); font-size:15px; display:flex; align-items:center; justify-content:center; transition:background .2s ease; }
+.toolbar button:hover{ background:var(--plum); color:var(--panel); }
+.toolbar .del{ margin-left:auto; color:var(--plum-deep); font-size:12.5px; width:auto; border-radius:20px; padding:0 14px; background:transparent; border:1px solid var(--line); }
+.toolbar .hint{ font-size:11.5px; color:var(--ink-soft); width:100%; order:99; }
+
+.libCol{ width:100%; flex-shrink:0; }
+@media(min-width:960px){ .libCol{ width:300px; } }
+.libCard{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:16px; margin-bottom:14px; }
+.libCard h3{ font-size:15px; margin-bottom:12px; }
+.flowerTypeGrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.flowerTypeBtn{ background:var(--bg); border:1.5px solid var(--line); border-radius:14px; padding:8px 4px; display:flex; flex-direction:column; align-items:center; gap:4px; transition:all .2s ease; }
+.flowerTypeBtn svg{ width:30px; height:30px; }
+.flowerTypeBtn span{ font-size:10px; color:var(--ink-soft); }
+.flowerTypeBtn.sel{ border-color:var(--plum); background:rgba(140,90,107,0.08); }
+.colorRow{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.colorDot{ width:26px; height:26px; border-radius:50%; border:2px solid transparent; }
+.colorDot.sel{ border-color:var(--ink); }
+.addFlowerBtn{ width:100%; background:var(--leaf); color:var(--panel); padding:11px; border-radius:14px; font-size:13.5px; }
+.addFlowerBtn:active{ transform:scale(0.97); }
+
+.msgCard textarea, .msgCard input{ width:100%; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-family:'Outfit',sans-serif; font-size:13.5px; color:var(--ink); margin-bottom:4px; }
+.msgCard label{ font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); display:block; margin:12px 0 6px; }
+.msgCard label:first-child{ margin-top:0; }
+.charCount{ font-size:10.5px; color:var(--ink-soft); text-align:right; margin-bottom:8px; }
+.formError{ font-size:12.5px; color:var(--plum-deep); margin-top:8px; min-height:16px; }
+
+.composerActions{ display:flex; gap:10px; margin-top:6px; }
+.composerActions .btn{ flex:1; }
+
+/* ================= GIFT VIEW ================= */
+#view-gift{ min-height:100vh; padding:40px 20px 70px; }
+.giftWrap{ max-width:520px; margin:0 auto; }
+.stateBox{ text-align:center; padding:70px 20px; color:var(--ink-soft); }
+.spinner{ width:34px; height:34px; border:3px solid var(--line); border-top-color:var(--plum); border-radius:50%; margin:0 auto 18px; animation:spin .8s linear infinite; }
+@keyframes spin{ to{transform:rotate(360deg);} }
+.stateBox h2{ font-size:20px; color:var(--ink); margin-bottom:8px; }
+.stateBox .btn{ margin-top:18px; }
+
+.revealStage{ position:relative; width:100%; aspect-ratio:4/5; max-height:480px; background:radial-gradient(ellipse at 50% 100%, rgba(140,90,107,0.16), transparent 62%), var(--panel); border-radius:28px; border:1px solid var(--line); box-shadow:var(--shadow); overflow:hidden; margin-bottom:26px; }
+.revealStage .vaseGuide{ opacity:0.5; }
+.revealFlower{ position:absolute; width:70px; height:70px; margin-left:-35px; margin-top:-35px; opacity:0; transform:scale(0.3) translateY(16px); }
+.revealStage.revealed .revealFlower{ animation:revealIn var(--dur) var(--ease) forwards; }
+@keyframes revealIn{ to{ opacity:1; transform:scale(1) translateY(0); } }
+
+.giftMeta{ text-align:center; margin-bottom:8px; }
+.giftMeta .eyebrow{ justify-content:center; font-size:10.5px; }
+.giftTitle{ font-size:clamp(24px,6vw,32px); margin-bottom:14px; text-align:center; }
+.giftMessage{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:26px 22px; font-size:15.5px; line-height:1.8; color:var(--ink); white-space:pre-wrap; }
+.giftSign{ text-align:right; font-family:'Fraunces',serif; font-style:italic; color:var(--plum); margin-top:14px; }
+.giftFootRow{ display:flex; justify-content:center; gap:14px; margin-top:22px; flex-wrap:wrap; }
+
+.shareCard{ margin-top:34px; background:var(--panel); border:1px solid var(--line); border-radius:22px; padding:24px; text-align:center; }
+.shareCard h3{ font-size:16px; margin-bottom:14px; }
+#qrBox{ background:#fff; display:inline-block; padding:12px; border-radius:14px; box-shadow:var(--shadow); }
+.shareBtnRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:16px; }
+.linkPill{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; background:var(--bg); border:1px solid var(--line); border-radius:20px; padding:8px 14px; margin-top:14px; word-break:break-all; color:var(--ink-soft); }
+
+#toast{ position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(16px); background:var(--ink); color:var(--panel); padding:11px 20px; border-radius:22px; font-size:13px; opacity:0; transition:all .3s var(--ease); z-index:200; pointer-events:none; }
+#toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* preview modal */
+#previewModal{ position:fixed; inset:0; background:rgba(20,26,17,0.55); backdrop-filter:blur(4px); z-index:150; display:none; align-items:flex-end; justify-content:center; }
+#previewModal.open{ display:flex; }
+@media(min-width:700px){ #previewModal{ align-items:center; } }
+.previewSheet{ background:var(--bg); width:100%; max-width:560px; max-height:88vh; overflow-y:auto; border-radius:26px 26px 0 0; padding:26px 20px 34px; position:relative; }
+@media(min-width:700px){ .previewSheet{ border-radius:26px; } }
+.previewSheet .closeX{ position:sticky; top:0; float:right; width:34px; height:34px; border-radius:50%; background:var(--panel); border:1px solid var(--line); font-size:16px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="#/" class="brand"><span class="mark" id="brandMark"></span>Everbloom</a>
+  <nav id="navHome"><a href="#/create" class="btn btn-ghost" style="padding:9px 18px;font-size:13px;">Start a bouquet</a></nav>
+  <a href="#/" class="backLink" id="navBack" style="display:none;">‹ Back home</a>
+</div>
+
+<!-- ============ HOME ============ -->
+<div class="view" id="view-home">
+  <section class="hero">
+    <div class="heroField" id="heroField"></div>
+    <div class="eyebrow">A living, digital gift</div>
+    <h1>Grow a bouquet,<br>then <em>send the whole garden.</em></h1>
+    <p>Pick real flowers, arrange them by hand, write what you mean — and send a private link that opens like a gift, not an order confirmation.</p>
+    <div class="ctaRow">
+      <a href="#/create" class="btn btn-primary">Start a bouquet</a>
+      <a href="#how" class="btn btn-ghost">See how it works</a>
+    </div>
+  </section>
+
+  <section class="howSec" id="how">
+    <div class="howHead">
+      <div class="eyebrow">Three steps</div>
+      <h2>From bare canvas to sent gift</h2>
+    </div>
+    <div class="steps" id="stepsWrap">
+      <div class="step"><div class="num">01</div><div><h3>Pick your flowers</h3><p>Choose from six original varieties in the colors that feel right — mix as many as you like.</p></div></div>
+      <div class="step"><div class="num">02</div><div><h3>Arrange it by hand</h3><p>Drag, rotate, and layer every stem until the bouquet actually looks like yours.</p></div></div>
+      <div class="step"><div class="num">03</div><div><h3>Send the link</h3><p>Add a note, generate a private link or QR code, and send it anywhere — no app required.</p></div></div>
+    </div>
+  </section>
+
+  <section class="libPreviewSec">
+    <div class="eyebrow" style="justify-content:center;">The collection</div>
+    <h2>Six varieties, original to Everbloom</h2>
+    <div class="previewGrid" id="previewGrid"></div>
+  </section>
+
+  <footer class="siteFooter">Every stem, arranged by you — from Everbloom.</footer>
+</div>
+
+<!-- ============ CREATE ============ -->
+<div class="view" id="view-create">
+  <div class="composerWrap">
+    <div class="canvasCol">
+      <div class="canvasHead">
+        <h2>Arrange your bouquet</h2>
+        <button class="smallLink" id="resetBtn">Reset</button>
+      </div>
+      <div id="bouquetCanvas">
+        <div class="vaseGuide"></div>
+        <div class="canvasEmpty" id="canvasEmpty">
+          <div class="bigIcon">✿</div>
+          <div>Your bouquet is empty — pick a flower on the right (or below) to begin.</div>
+        </div>
+      </div>
+      <div class="toolbar" id="toolbar" aria-disabled="true">
+        <span class="hint" id="toolbarHint">Select a flower to rotate, resize, layer, or remove it. Arrow keys move a focused flower.</span>
+      </div>
+
+      <div class="libCard msgCard" style="margin-top:18px;">
+        <h3>Personalize it</h3>
+        <label for="recipientInput">To</label>
+        <input id="recipientInput" type="text" maxlength="40" placeholder="Recipient's name">
+        <label for="senderInput">From</label>
+        <input id="senderInput" type="text" maxlength="40" placeholder="Your name">
+        <label for="messageInput">Message</label>
+        <textarea id="messageInput" rows="4" maxlength="400" placeholder="Say what you mean..."></textarea>
+        <div class="charCount"><span id="msgCount">0</span>/400</div>
+        <div class="formError" id="formError">&nbsp;</div>
+        <div class="composerActions">
+          <button class="btn btn-ghost" id="previewBtn">Preview</button>
+          <button class="btn btn-primary" id="saveBtn">Generate gift link</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="libCol">
+      <div class="libCard">
+        <h3>Flower type</h3>
+        <div class="flowerTypeGrid" id="typeGrid"></div>
+        <h3>Color</h3>
+        <div class="colorRow" id="colorRow"></div>
+        <button class="addFlowerBtn" id="addFlowerBtn">Add to bouquet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GIFT VIEW ============ -->
+<div class="view" id="view-gift">
+  <div class="giftWrap" id="giftWrap"></div>
+</div>
+
+<!-- preview modal -->
+<div id="previewModal">
+  <div class="previewSheet">
+    <button class="closeX" id="closePreview">✕</button>
+    <div id="previewContent"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   ORIGINAL FLOWER SVG GENERATION
+   ============================================================ */
+const PALETTE = {
+  blush:'#E7ABAA', amber:'#D6A257', lavender:'#A288BF', ivory:'#F3EBDA', plum:'#8C5A6B', sage:'#7C9473'
+};
+const TYPES = ['daisy','rosette','peony','tulip','sprig','bud'];
+
+function svgWrap(inner){ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
+
+function flowerSVG(type,colorKey){
+  const c = PALETTE[colorKey] || PALETTE.blush;
+  const dark = shade(c,-18);
+  if(type==='daisy'){
+    let petals='';
+    for(let i=0;i<10;i++){
+      const a = (360/10)*i;
+      petals += `<ellipse cx="50" cy="27" rx="7" ry="17" fill="${c}" opacity="0.95" transform="rotate(${a} 50 50)"/>`;
+    }
+    return svgWrap(`${petals}<circle cx="50" cy="50" r="11" fill="${PALETTE.amber}"/>`);
+  }
+  if(type==='rosette'){
+    let petals='';
+    for(let i=0;i<8;i++){
+      const a=(360/8)*i;
+      petals += `<path d="M50 50 C 40 38, 40 20, 50 12 C 60 20, 60 38, 50 50 Z" fill="${i%2?c:dark}" opacity="0.92" transform="rotate(${a} 50 50)"/>`;
+    }
+    return svgWrap(petals+`<circle cx="50" cy="50" r="7" fill="${dark}"/>`);
+  }
+  if(type==='peony'){
+    let blobs='';
+    const offs=[[0,0,16],[14,-10,12],[-14,-10,12],[14,12,12],[-14,12,12],[0,-20,11],[0,20,11],[20,2,10],[-20,2,10]];
+    offs.forEach((o,i)=>{ blobs+=`<circle cx="${50+o[0]}" cy="${50+o[1]}" r="${o[2]}" fill="${i%3===0?dark:c}" opacity="0.88"/>`; });
+    return svgWrap(blobs);
+  }
+  if(type==='tulip'){
+    return svgWrap(`<path d="M50 15 C 30 15, 26 40, 34 55 C 40 48, 44 46, 50 55 C 56 46, 60 48, 66 55 C 74 40, 70 15, 50 15 Z" fill="${c}"/><path d="M50 20 C 44 24, 42 40, 50 52 C 58 40, 56 24, 50 20 Z" fill="${dark}" opacity="0.5"/><line x1="50" y1="55" x2="50" y2="90" stroke="${PALETTE.sage}" stroke-width="3"/>`);
+  }
+  if(type==='sprig'){
+    let leaves='';
+    for(let i=0;i<5;i++){
+      const y=25+i*13, side=i%2===0?1:-1;
+      leaves+=`<ellipse cx="${50+side*13}" cy="${y}" rx="11" ry="5" fill="${PALETTE.sage}" transform="rotate(${side*30} ${50+side*13} ${y})"/>`;
+    }
+    return svgWrap(`<line x1="50" y1="15" x2="50" y2="90" stroke="${PALETTE.sage}" stroke-width="2.5"/>${leaves}`);
+  }
+  if(type==='bud'){
+    return svgWrap(`<path d="M50 20 C 38 26, 38 46, 50 54 C 62 46, 62 26, 50 20 Z" fill="${c}"/><line x1="50" y1="54" x2="50" y2="88" stroke="${PALETTE.sage}" stroke-width="3"/>`);
+  }
+  return svgWrap('');
+}
+function shade(hex,percent){
+  const n=parseInt(hex.slice(1),16);
+  let r=(n>>16)+Math.round(255*percent/100), g=((n>>8)&0xff)+Math.round(255*percent/100), b=(n&0xff)+Math.round(255*percent/100);
+  r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
+  return '#'+(1<<24|r<<16|g<<8|b).toString(16).slice(1);
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let draft = { flowers:[], recipient:'', sender:'', message:'' };
+let selectedId = null;
+let nextZ = 1;
+let selType = 'daisy';
+let selColor = 'blush';
+
+const canvas = document.getElementById('bouquetCanvas');
+const canvasEmpty = document.getElementById('canvasEmpty');
+const toolbar = document.getElementById('toolbar');
+const toolbarHint = document.getElementById('toolbarHint');
+
+/* ---------- router ---------- */
+function router(){
+  const hash = location.hash || '#/';
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('navHome').style.display='';
+  document.getElementById('navBack').style.display='none';
+  if(hash.startsWith('#/gift/')){
+    document.getElementById('view-gift').classList.add('active');
+    document.getElementById('navHome').style.display='none';
+    document.getElementById('navBack').style.display='flex';
+    loadGift(hash.replace('#/gift/',''));
+  } else if(hash==='#/create'){
+    document.getElementById('view-create').classList.add('active');
+    document.getElementById('navHome').style.display='none';
+    document.getElementById('navBack').style.display='flex';
+    renderCanvas();
+  } else {
+    document.getElementById('view-home').classList.add('active');
+    window.scrollTo(0,0);
+  }
+}
+window.addEventListener('hashchange', router);
+
+/* ============================================================
+   HOME: ambient flowers + scroll reveal
+   ============================================================ */
+function initHeroField(){
+  const field=document.getElementById('heroField');
+  const combos=[['daisy','blush'],['peony','lavender'],['tulip','amber'],['rosette','plum'],['bud','sage'],['sprig','sage']];
+  combos.forEach((cb,i)=>{
+    const el=document.createElement('div');
+    el.className='idleFlower';
+    el.style.left=(8+i*15+Math.random()*6)+'%';
+    el.style.top=(10+Math.random()*55)+'%';
+    el.style.width=(46+Math.random()*30)+'px';
+    el.style.height=el.style.width;
+    el.style.opacity=0.5+Math.random()*0.3;
+    el.style.animationDelay=(Math.random()*4)+'s';
+    el.style.animationDuration=(6+Math.random()*3)+'s';
+    el.innerHTML=flowerSVG(cb[0],cb[1]);
+    field.appendChild(el);
+  });
+}
+function initPreviewGrid(){
+  const grid=document.getElementById('previewGrid');
+  TYPES.forEach((t,i)=>{
+    const colors=Object.keys(PALETTE);
+    const c=colors[i%colors.length];
+    const d=document.createElement('div'); d.className='pv';
+    d.innerHTML=flowerSVG(t,c);
+    grid.appendChild(d);
+  });
+}
+function initScrollReveal(){
+  const steps=document.querySelectorAll('.step');
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('inview'); });
+  },{threshold:0.2});
+  steps.forEach(s=>io.observe(s));
+}
+
+/* ============================================================
+   COMPOSER
+   ============================================================ */
+function initLibrary(){
+  const typeGrid=document.getElementById('typeGrid');
+  TYPES.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='flowerTypeBtn'+(t===selType?' sel':'');
+    b.innerHTML=flowerSVG(t,selColor)+`<span>${t}</span>`;
+    b.addEventListener('click',()=>{ selType=t; refreshLibSelection(); });
+    b.dataset.type=t;
+    typeGrid.appendChild(b);
+  });
+  const colorRow=document.getElementById('colorRow');
+  Object.keys(PALETTE).forEach(k=>{
+    const d=document.createElement('button');
+    d.className='colorDot'+(k===selColor?' sel':'');
+    d.style.background=PALETTE[k];
+    d.dataset.color=k;
+    d.addEventListener('click',()=>{ selColor=k; refreshLibSelection(); });
+    colorRow.appendChild(d);
+  });
+}
+function refreshLibSelection(){
+  document.querySelectorAll('.flowerTypeBtn').forEach(b=>{
+    b.classList.toggle('sel', b.dataset.type===selType);
+    b.innerHTML = flowerSVG(b.dataset.type, selColor) + `<span>${b.dataset.type}</span>`;
+  });
+  document.querySelectorAll('.colorDot').forEach(d=> d.classList.toggle('sel', d.dataset.color===selColor));
+}
+document.getElementById('addFlowerBtn').addEventListener('click', ()=>{
+  const f = {
+    id:'f'+Date.now()+Math.floor(Math.random()*999),
+    type:selType, color:selColor,
+    x:50+(Math.random()*18-9), y:56+(Math.random()*14-7),
+    rot:Math.round(Math.random()*30-15), scale:1, z:nextZ++
+  };
+  draft.flowers.push(f);
+  renderCanvas();
+  selectFlower(f.id);
+});
+
+function renderCanvas(){
+  document.querySelectorAll('.stageFlower').forEach(el=>el.remove());
+  canvasEmpty.style.display = draft.flowers.length ? 'none' : 'flex';
+  draft.flowers.forEach(f=>{
+    const el=document.createElement('div');
+    el.className='stageFlower'+(f.id===selectedId?' selected':'');
+    el.style.left=f.x+'%'; el.style.top=f.y+'%';
+    el.style.zIndex=f.z;
+    el.style.transform=`rotate(${f.rot}deg) scale(${f.scale})`;
+    el.innerHTML=flowerSVG(f.type,f.color);
+    el.dataset.id=f.id;
+    el.tabIndex=0;
+    el.setAttribute('role','button');
+    el.setAttribute('aria-label', `${f.type} flower, ${f.color}. Use arrow keys to move, bracket keys to rotate, plus and minus to resize, delete to remove.`);
+    bindFlowerEvents(el,f);
+    canvas.appendChild(el);
+  });
+  renderToolbar();
+}
+
+function bindFlowerEvents(el,f){
+  let dragging=false, startX=0, startY=0;
+  el.addEventListener('pointerdown', (e)=>{
+    selectFlower(f.id);
+    dragging=true; el.setPointerCapture(e.pointerId);
+    const rect=canvas.getBoundingClientRect();
+    startX=e.clientX; startY=e.clientY;
+  });
+  el.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    const rect=canvas.getBoundingClientRect();
+    const px = ((e.clientX-rect.left)/rect.width)*100;
+    const py = ((e.clientY-rect.top)/rect.height)*100;
+    f.x=Math.max(4,Math.min(96,px)); f.y=Math.max(4,Math.min(96,py));
+    el.style.left=f.x+'%'; el.style.top=f.y+'%';
+  });
+  el.addEventListener('pointerup', ()=>{ dragging=false; });
+  el.addEventListener('pointercancel', ()=>{ dragging=false; });
+  el.addEventListener('focus', ()=> selectFlower(f.id));
+  el.addEventListener('keydown', (e)=>{
+    const step = e.shiftKey ? 6 : 2;
+    let handled=true;
+    if(e.key==='ArrowUp'){ f.y=Math.max(4,f.y-step); }
+    else if(e.key==='ArrowDown'){ f.y=Math.min(96,f.y+step); }
+    else if(e.key==='ArrowLeft'){ f.x=Math.max(4,f.x-step); }
+    else if(e.key==='ArrowRight'){ f.x=Math.min(96,f.x+step); }
+    else if(e.key==='['){ f.rot-=10; }
+    else if(e.key===']'){ f.rot+=10; }
+    else if(e.key==='+' || e.key==='='){ f.scale=Math.min(1.8,f.scale+0.1); }
+    else if(e.key==='-'){ f.scale=Math.max(0.5,f.scale-0.1); }
+    else if(e.key==='Delete' || e.key==='Backspace'){ removeFlower(f.id); handled=true; e.preventDefault(); return; }
+    else{ handled=false; }
+    if(handled){ e.preventDefault(); el.style.left=f.x+'%'; el.style.top=f.y+'%'; el.style.transform=`rotate(${f.rot}deg) scale(${f.scale})`; }
+  });
+}
+
+function selectFlower(id){
+  selectedId=id;
+  document.querySelectorAll('.stageFlower').forEach(el=> el.classList.toggle('selected', el.dataset.id===id));
+  renderToolbar();
+}
+function getSelected(){ return draft.flowers.find(f=>f.id===selectedId); }
+function removeFlower(id){
+  draft.flowers = draft.flowers.filter(f=>f.id!==id);
+  if(selectedId===id) selectedId=null;
+  renderCanvas();
+}
+function renderToolbar(){
+  const f=getSelected();
+  if(!f){
+    toolbar.setAttribute('aria-disabled','true');
+    toolbar.innerHTML='<span class="hint">Select a flower to rotate, resize, layer, or remove it. Arrow keys move a focused flower.</span>';
+    return;
+  }
+  toolbar.removeAttribute('aria-disabled');
+  toolbar.innerHTML=`
+    <button id="tRotL" aria-label="Rotate left">⟲</button>
+    <button id="tRotR" aria-label="Rotate right">⟳</button>
+    <button id="tSmall" aria-label="Shrink">−</button>
+    <button id="tBig" aria-label="Grow">+</button>
+    <button id="tFront" aria-label="Bring to front">⤒</button>
+    <button class="del" id="tDel">Remove</button>
+  `;
+  document.getElementById('tRotL').onclick=()=>{ f.rot-=15; syncFlowerEl(f); };
+  document.getElementById('tRotR').onclick=()=>{ f.rot+=15; syncFlowerEl(f); };
+  document.getElementById('tSmall').onclick=()=>{ f.scale=Math.max(0.5,f.scale-0.1); syncFlowerEl(f); };
+  document.getElementById('tBig').onclick=()=>{ f.scale=Math.min(1.8,f.scale+0.1); syncFlowerEl(f); };
+  document.getElementById('tFront').onclick=()=>{ f.z=nextZ++; syncFlowerEl(f); };
+  document.getElementById('tDel').onclick=()=> removeFlower(f.id);
+}
+function syncFlowerEl(f){
+  const el=canvas.querySelector(`.stageFlower[data-id="${f.id}"]`);
+  if(el){ el.style.transform=`rotate(${f.rot}deg) scale(${f.scale})`; el.style.zIndex=f.z; }
+}
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(draft.flowers.length && !confirm('Clear the whole bouquet?')) return;
+  draft.flowers=[]; selectedId=null; renderCanvas();
+});
+
+/* message fields */
+const recipientInput=document.getElementById('recipientInput');
+const senderInput=document.getElementById('senderInput');
+const messageInput=document.getElementById('messageInput');
+const msgCount=document.getElementById('msgCount');
+recipientInput.addEventListener('input', ()=> draft.recipient=recipientInput.value);
+senderInput.addEventListener('input', ()=> draft.sender=senderInput.value);
+messageInput.addEventListener('input', ()=>{ draft.message=messageInput.value; msgCount.textContent=messageInput.value.length; });
+
+/* ---------- gift content renderer (shared by preview + gift view) ---------- */
+function buildGiftMarkup(gift, opts){
+  opts = opts||{};
+  const stageId = opts.stageId || ('stage-'+Math.random().toString(36).slice(2));
+  let flowersHTML='';
+  gift.flowers.forEach((f,i)=>{
+    flowersHTML += `<div class="revealFlower" style="left:${f.x}%;top:${f.y}%;z-index:${f.z};transform:rotate(${f.rot}deg) scale(${f.scale});animation-delay:${i*90}ms;">${flowerSVG(f.type,f.color)}</div>`;
+  });
+  return `
+    <div class="revealStage" id="${stageId}">
+      <div class="vaseGuide"></div>
+      ${flowersHTML}
+    </div>
+    <div class="giftMeta">
+      <div class="eyebrow">${gift.recipient ? 'For '+escapeHTML(gift.recipient) : 'A gift for you'}</div>
+    </div>
+    <h2 class="giftTitle">A bouquet, grown for you</h2>
+    <div class="giftMessage">${escapeHTML(gift.message || 'No note was left — just the flowers, arranged by hand.')}</div>
+    ${gift.sender ? `<div class="giftSign">— ${escapeHTML(gift.sender)}</div>` : ''}
+    <div class="giftFootRow">
+      <button class="btn btn-ghost" data-replay="${stageId}">Replay reveal</button>
+    </div>
+  `;
+}
+function escapeHTML(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+document.getElementById('previewBtn').addEventListener('click', ()=>{
+  if(!draft.flowers.length){ showFormError('Add at least one flower to preview the bouquet.'); return; }
+  document.getElementById('previewContent').innerHTML = buildGiftMarkup(draft,{stageId:'previewStage'});
+  document.getElementById('previewModal').classList.add('open');
+  requestAnimationFrame(()=>{
+    document.getElementById('previewStage').classList.add('revealed');
+  });
+});
+document.getElementById('closePreview').addEventListener('click', ()=> document.getElementById('previewModal').classList.remove('open'));
+document.addEventListener('click', (e)=>{
+  const r=e.target.closest('[data-replay]');
+  if(r){ const stage=document.getElementById(r.dataset.replay); stage.classList.remove('revealed'); void stage.offsetWidth; stage.classList.add('revealed'); }
+});
+
+function showFormError(msg){
+  const el=document.getElementById('formError');
+  el.textContent=msg;
+  setTimeout(()=>{ if(el.textContent===msg) el.innerHTML='&nbsp;'; }, 4000);
+}
+
+/* ---------- save & generate link ---------- */
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  if(!draft.flowers.length){ showFormError('Your bouquet is empty — add at least one flower first.'); return; }
+  if(!draft.recipient.trim()){ showFormError("Add a recipient name so they know it's for them."); return; }
+  const btn=document.getElementById('saveBtn');
+  const original=btn.textContent;
+  btn.textContent='Saving…'; btn.disabled=true;
+  const id = Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  const gift = { id, createdAt:Date.now(), flowers:draft.flowers, recipient:draft.recipient.trim(), sender:draft.sender.trim(), message:draft.message.trim() };
+  try{
+    const r = await window.storage.set('gift:'+id, JSON.stringify(gift), true);
+    if(r){
+      location.hash = '#/gift/'+id;
+      showToast('Bouquet sent to its own page 🌿');
+    } else {
+      showFormError('Could not save right now — please try again.');
+    }
+  }catch(e){
+    showFormError('Network issue while saving — please try again.');
+  }
+  btn.textContent=original; btn.disabled=false;
+});
+
+/* ============================================================
+   GIFT VIEW
+   ============================================================ */
+async function loadGift(id){
+  const wrap=document.getElementById('giftWrap');
+  wrap.innerHTML = `<div class="stateBox"><div class="spinner"></div><h2>Opening your gift…</h2><p>Just a moment while the flowers arrive.</p></div>`;
+  let gift=null, errored=false;
+  try{
+    const r = await window.storage.get('gift:'+id, true);
+    if(r && r.value) gift = JSON.parse(r.value);
+  }catch(e){ errored=true; }
+
+  if(errored){
+    wrap.innerHTML = `<div class="stateBox"><h2>Couldn't load this gift</h2><p>A network hiccup got in the way.</p><button class="btn btn-primary" id="retryLoad">Try again</button></div>`;
+    document.getElementById('retryLoad').onclick=()=>loadGift(id);
+    return;
+  }
+  if(!gift){
+    wrap.innerHTML = `<div class="stateBox"><h2>This gift link isn't valid</h2><p>It may have been mistyped, or the bouquet hasn't been sent yet.</p><a href="#/create" class="btn btn-primary">Start your own bouquet</a></div>`;
+    return;
+  }
+
+  wrap.innerHTML = buildGiftMarkup(gift,{stageId:'giftStage'});
+  requestAnimationFrame(()=> document.getElementById('giftStage').classList.add('revealed'));
+
+  const shareCard=document.createElement('div');
+  shareCard.className='shareCard';
+  shareCard.innerHTML = `
+    <h3>Send this to them</h3>
+    <div id="qrBox"></div>
+    <div class="linkPill mono" id="linkPill"></div>
+    <div class="shareBtnRow">
+      <button class="btn btn-ghost" id="copyBtn">Copy link</button>
+      <button class="btn btn-ghost" id="downloadQrBtn">Download QR</button>
+      <button class="btn btn-primary" id="nativeShareBtn" style="display:none;">Share</button>
+    </div>
+  `;
+  wrap.appendChild(shareCard);
+
+  const giftUrl = location.origin + location.pathname + '#/gift/' + id;
+  document.getElementById('linkPill').textContent = giftUrl;
+  try{
+    new QRCode(document.getElementById('qrBox'), { text: giftUrl, width:160, height:160, colorDark:'#20301F', colorLight:'#ffffff' });
+  }catch(e){
+    document.getElementById('qrBox').textContent = 'QR unavailable — use the link below.';
+  }
+  document.getElementById('copyBtn').onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(giftUrl); showToast('Link copied'); }
+    catch(e){ showToast('Could not copy — select the link manually'); }
+  };
+  document.getElementById('downloadQrBtn').onclick = ()=>{
+    const box=document.getElementById('qrBox');
+    const canvasEl=box.querySelector('canvas'); const imgEl=box.querySelector('img');
+    let dataUrl=null;
+    if(canvasEl) dataUrl=canvasEl.toDataURL('image/png');
+    else if(imgEl) dataUrl=imgEl.src;
+    if(!dataUrl){ showToast('QR image not ready yet'); return; }
+    const a=document.createElement('a'); a.href=dataUrl; a.download='everbloom-gift-qr.png'; a.click();
+  };
+  if(navigator.share){
+    const shareBtn=document.getElementById('nativeShareBtn');
+    shareBtn.style.display='';
+    shareBtn.onclick=async ()=>{
+      try{ await navigator.share({ title:'A bouquet for you', text:'Someone grew you a bouquet on Everbloom.', url:giftUrl }); }
+      catch(e){ /* user cancelled — no error toast needed */ }
+    };
+  }
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  document.documentElement.classList.add('reduced-motion');
+}
+document.getElementById('brandMark').innerHTML = flowerSVG('daisy','plum');
+initHeroField();
+initPreviewGrid();
+initScrollReveal();
+initLibrary();
+router();
+</script>
+</body>
+</html>
